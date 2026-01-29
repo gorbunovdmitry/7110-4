@@ -162,65 +162,14 @@ function getAllDetailCheckboxes() {
     ].filter(function(cb) { return cb !== null; });
 }
 
-// Show financial protection modal
-function showFinancialProtectionModal() {
-    const modal = document.getElementById('financialProtectionModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        // Prevent body scroll when modal is open
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Hide financial protection modal
-function hideFinancialProtectionModal() {
-    const modal = document.getElementById('financialProtectionModal');
-    if (modal) {
-        modal.style.display = 'none';
-        // Restore body scroll
-        document.body.style.overflow = '';
-    }
-}
-
-// Decline protection - keep checkbox unchecked
-function declineProtection() {
-    hideFinancialProtectionModal();
-    // Checkbox remains unchecked (already unchecked by updateDetailCheckboxes)
-    validateForm();
-}
-
-// Keep protection - check the checkbox again
-function keepProtection() {
-    const checkbox = document.getElementById('financialProtectionCheckbox');
-    const mainCheckbox = document.getElementById('agreementCheckbox');
-    if (checkbox) {
-        checkbox.checked = true;
-        // If all detail checkboxes are checked, check main checkbox
-        if (mainCheckbox && areAllDetailCheckboxesChecked()) {
-            mainCheckbox.checked = true;
-        }
-    }
-    hideFinancialProtectionModal();
-    validateForm();
-}
-
 // Update all detail checkboxes based on main checkbox
 function updateDetailCheckboxes(checked) {
     const detailCheckboxes = getAllDetailCheckboxes();
-    // Check if financial protection is checked BEFORE unchecking
-    const financialProtectionCheckbox = document.getElementById('financialProtectionCheckbox');
-    const wasFinancialProtectionChecked = financialProtectionCheckbox && financialProtectionCheckbox.checked;
-    
     detailCheckboxes.forEach(function(checkbox) {
         if (checkbox) {
             checkbox.checked = checked;
         }
     });
-    
-    // If unchecking main checkbox and financial protection was checked, show modal
-    if (!checked && wasFinancialProtectionChecked) {
-        showFinancialProtectionModal();
-    }
 }
 
 // Check if all detail checkboxes are checked
@@ -256,19 +205,6 @@ function initializeStep2() {
     detailCheckboxes.forEach(function(checkbox) {
         if (checkbox) {
             checkbox.addEventListener('change', function() {
-                // Special handling for financial protection checkbox - show modal when unchecked
-                if (this.id === 'financialProtectionCheckbox' && !this.checked) {
-                    // Show modal - it will handle main checkbox update
-                    showFinancialProtectionModal();
-                    // Update main checkbox immediately
-                    const mainCheckbox = document.getElementById('agreementCheckbox');
-                    if (mainCheckbox) {
-                        mainCheckbox.checked = false;
-                    }
-                    validateForm();
-                    return;
-                }
-                
                 const mainCheckbox = document.getElementById('agreementCheckbox');
                 if (mainCheckbox) {
                     // If this checkbox is unchecked, uncheck main checkbox
@@ -327,10 +263,6 @@ function goToStep2() {
 window.goToStep2 = goToStep2;
 window.toggleDetails = toggleDetails;
 window.submitForm = submitForm;
-window.showFinancialProtectionModal = showFinancialProtectionModal;
-window.hideFinancialProtectionModal = hideFinancialProtectionModal;
-window.declineProtection = declineProtection;
-window.keepProtection = keepProtection;
 
 // Toggle details
 function toggleDetails() {
@@ -364,25 +296,14 @@ function validateForm() {
 
 // Submit form
 function submitForm() {
-    const agreementCheckbox = document.getElementById('agreementCheckbox');
     const emailInput = document.getElementById('emailInput');
-    
-    if (!agreementCheckbox || !agreementCheckbox.checked) {
-        alert('Пожалуйста, подтвердите согласие с условиями');
-        return;
-    }
-    
-    const email = emailInput.value.trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert('Пожалуйста, введите корректный email');
-        return;
-    }
+    const email = emailInput ? emailInput.value.trim() : '';
     
     // Track form submission
     if (typeof gtag !== 'undefined') {
         gtag('event', '3999_form_submit_var1', {
             variant_name: 'ghk_3999_1',
-            email: email
+            email: email || ''
         });
     }
     if (typeof ym !== 'undefined') {
